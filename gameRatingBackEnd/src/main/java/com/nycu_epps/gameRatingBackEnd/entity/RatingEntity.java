@@ -6,24 +6,30 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "Rating")
+@Table(name = "rating")
 @Data
 public class RatingEntity {
 
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Integer ratingId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "rating_id")
+    private Integer ratingId;
 
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "game_id")
-        private GameEntity game;
+    // 關聯到發行版本
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "release_id")
+    private GameReleaseEntity gameRelease;
 
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "platform_id")
-        private PlatformEntity platform;
+    @Column(name = "media_review_count")
+    private Integer mediaReviewCount;
 
-        private BigDecimal metascore;
-        @Column(name = "user_score")
-        private BigDecimal userScore;
-    }
+    @Column(name = "user_review_count")
+    private Integer userReviewCount;
+
+    @Column(name = "metascore")
+    private Integer metascore;
+
+    @Column(name = "user_score")
+    private Float userScore;
+}
 

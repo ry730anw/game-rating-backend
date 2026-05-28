@@ -11,11 +11,22 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface RatingRepository extends JpaRepository<RatingEntity, Integer> {
-    @Query("SELECT new com.nycu_epps.gameRatingBackEnd.dto.GameRatingResponse(g.title, p.platformName, r.metascore, r.userScore) " +
-            "FROM RatingEntity r " +
-            "JOIN r.game g " +
-            "JOIN r.platform p " +
-            "WHERE LOWER(g.title) LIKE LOWER(CONCAT('%', :keyword, '%'))")
-        // 1. 將 List 改成 Page，2. 參數加上 Pageable
-    Page<GameRatingResponse> searchGamesByTitle(@Param("keyword") String keyword, Pageable pageable);
+
+    @Query("SELECT r FROM RatingEntity r " +
+            "JOIN r.gameRelease gr " +
+            "JOIN gr.game g " +
+            "JOIN gr.platform p " +  // 💡 把 platform JOIN 進來
+            "WHERE LOWER(g.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "AND (:platform = '' OR p.platformName = :platform)") // 💡 神奇的選填條件寫法
+    Page<RatingEntity> searchGamesByTitleAndPlatform(
+            @Param("keyword") String keyword,
+            @Param("platform") String platform,
+            Pageable pageable);
+
+    @Query("SELECT r FROM RatingEntity r " +
+            "JOIN r.gameRelease gr " +
+            "JOIN gr.platform p " +
+            "WHERE p.platformName = :platformName " +
+            "ORDER BY r.metascore DESC")
+    List<RatingEntity> findTopGamesByPlatform(@Param("platformName") String platformName, Pageable pageable);
 }
