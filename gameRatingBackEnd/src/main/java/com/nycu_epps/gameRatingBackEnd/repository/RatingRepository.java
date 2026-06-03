@@ -15,12 +15,21 @@ public interface RatingRepository extends JpaRepository<RatingEntity, Integer> {
     @Query("SELECT r FROM RatingEntity r " +
             "JOIN r.gameRelease gr " +
             "JOIN gr.game g " +
-            "JOIN gr.platform p " +  // 💡 把 platform JOIN 進來
+            "JOIN gr.platform p " +
+            // 注意！這裡不要寫 LEFT JOIN g.genres gen
             "WHERE LOWER(g.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-            "AND (:platform = '' OR p.platformName = :platform)") // 💡 神奇的選填條件寫法
+            "AND (:platform = '' OR p.platformName = :platform) " +
+            "AND (:year = '' OR CAST(gr.releaseDate AS string) LIKE CONCAT(:year, '%')) " +
+            "AND (:minScore IS NULL OR r.metascore >= :minScore) " +
+            // 💡 關鍵魔法：用 EXISTS 來取代 JOIN
+            "AND (:genre = '' OR EXISTS (SELECT 1 FROM g.genres gen WHERE LOWER(gen.genreName) LIKE LOWER(CONCAT('%', :genre, '%'))))")
+
     Page<RatingEntity> searchGamesByTitleAndPlatform(
             @Param("keyword") String keyword,
             @Param("platform") String platform,
+            @Param("genre") String genre,
+            @Param("year") String year,
+            @Param("minScore") Integer minScore,
             Pageable pageable);
 
     @Query("SELECT r FROM RatingEntity r " +

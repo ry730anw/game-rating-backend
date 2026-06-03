@@ -10,8 +10,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/games")
-//@CrossOrigin(origins = "http://localhost:4200")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:4200")
+//@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class GameController {
 
@@ -21,12 +21,16 @@ public class GameController {
     public Page<GameRatingResponse> searchGames(
             // 加上 defaultValue = ""，確保沒有輸入關鍵字時，預設搜尋全部 (LIKE '%%')
             @RequestParam(value = "title", required = false, defaultValue = "") String title,
+            @RequestParam(value = "sortBy", defaultValue = "metascore") String sortBy,
             // 將 defaultValue 改為 "0"，配合 Spring Data JPA 從 0 開始算第一頁的特性
+            @RequestParam(value = "genre", required = false, defaultValue = "") String genre,
+            @RequestParam(value = "year", required = false, defaultValue = "") String year,
+            @RequestParam(value = "minScore", required = false) Integer minScore,
             @RequestParam(value = "platform", required = false, defaultValue = "") String platform,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size
     ) {
-        return gameService.searchGames(title,platform, page, size);
+        return gameService.searchGames(title,platform,genre, year, minScore,sortBy,page,size);
     }
 
     @GetMapping("/rank")

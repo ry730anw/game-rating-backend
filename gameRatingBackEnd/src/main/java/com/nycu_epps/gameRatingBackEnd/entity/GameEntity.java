@@ -21,6 +21,7 @@ public class GameEntity {
     @Column(name = "summary", columnDefinition = "TEXT")
     private String summary;
 
+
     // 處理 game_developer 關聯表 (多對多)
     @ManyToMany
     @JoinTable(

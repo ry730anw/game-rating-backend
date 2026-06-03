@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
+import org.springframework.data.domain.Sort;
 @Service
 @RequiredArgsConstructor
 public class GameServiceImpl implements GameService {
@@ -23,15 +23,17 @@ public class GameServiceImpl implements GameService {
     private final RatingRepository ratingRepository;
     private final PlatformRepository platformRepository; // 💡 注入新建立的 Repository
     @Override
-    public Page<GameRatingResponse> searchGames(String title, String platform,int page, int size) {
+    public Page<GameRatingResponse> searchGames(String title, String platform,String genre, String year, Integer minScore,String sortBy,int page, int size) {
         int validPage = (page > 0) ? page - 1 : 0;
         int validSize = (size > 0 && size <= 100) ? size : 10;
         String safeTitle = (title != null) ? title : "";
-
+        Sort sort = Sort.by(Sort.Direction.DESC, sortBy).and(Sort.by(Sort.Direction.ASC, "ratingId"));;
         String safePlatform = (platform != null) ? platform : "";
-        Pageable pageable = PageRequest.of(validPage, validSize);
+        String safeGenre = (genre != null) ? genre : "";
+        String safeYear = (year != null) ? year : "";
+        Pageable pageable = PageRequest.of(validPage, validSize, sort);
 
-        Page<RatingEntity> entityPage = ratingRepository.searchGamesByTitleAndPlatform(safeTitle, safePlatform, pageable);
+        Page<RatingEntity> entityPage = ratingRepository.searchGamesByTitleAndPlatform(safeTitle, safePlatform, safeGenre, safeYear, minScore, pageable);
         return entityPage.map(this::convertToDto);
     }
 
@@ -55,6 +57,7 @@ public class GameServiceImpl implements GameService {
 
     private GameRatingResponse convertToDto(RatingEntity entity) {
         // 利用 Java Stream 把多個開發商/類型名稱抽出來，並用逗號連接
+
         String developers = entity.getGameRelease().getGame().getDevelopers().stream()
                 .map(DeveloperEntity::getDeveloperName)
                 .collect(Collectors.joining(", "));
